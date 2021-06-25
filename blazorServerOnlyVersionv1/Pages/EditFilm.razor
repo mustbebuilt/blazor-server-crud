@@ -1,0 +1,70 @@
+﻿@page "/EditFilm/{FilmID:int}"
+@using blazorServerOnlyVersionv1.Data
+@inject FilmService filmService
+@inject NavigationManager NavigationManager
+
+
+<h3>Edit Film</h3>
+
+<EditForm Model=@filmToEdit>
+    <div>
+        <label for="FilmTitle">Film Title</label>
+        <InputText @bind-Value=filmToEdit.FilmTitle class="form-control" id="FilmTitle" />
+
+    </div>
+
+    <div>
+        <label for="FilmCertificate">Film Certificate</label>
+        <InputText @bind-Value=filmToEdit.FilmCertificate class="form-control" id="FilmCertificate" />
+    </div>
+
+    <div>
+        <label for="FilmDescription">Film Description</label>
+        <InputTextArea @bind-Value=filmToEdit.FilmDescription class="form-control" id="FilmDescription" />
+
+    </div>
+
+    <div>
+        <label for="FilmImage">Film Image</label>
+        <InputText @bind-Value=filmToEdit.FilmImage class="form-control" id="FilmImage" />
+    </div>
+
+    <div>
+        <label for="FilmPrice">Film Price</label>
+        <InputNumber @bind-Value=filmToEdit.FilmPrice class="form-control" id="FilmPrice" />
+    </div>
+
+    <div>
+        <label for="FilmRating">Film Rating</label>
+        <InputNumber @bind-Value=filmToEdit.FilmRating class="form-control" id="FilmRating" />
+    </div>
+
+    <div>
+        <label for="FilmReleaseDate">Release Date</label>
+        <InputDate @bind-Value=filmToEdit.FilmReleaseDate class="form-control" id="FilmReleaseDate" />
+    </div>
+
+    <div>
+        <input type="button" class="btn btn-primary" @onclick="@UpdateFilm" value="Update" />
+        <input type="button" class="btn btn-primary" @onclick="@Cancel" value="Cancel" />
+    </div>
+
+</EditForm>
+
+@code {
+    [Parameter] public int FilmID { get; set; }
+    Film filmToEdit = new Film();
+    protected override async Task OnInitializedAsync()
+    {
+        filmToEdit = await Task.Run(() => filmService.GetFilmAsync(Convert.ToInt32(FilmID)));
+    }
+    protected async void UpdateFilm()
+    {
+        await filmService.UpdateFilmAsync(filmToEdit);
+        NavigationManager.NavigateTo("ListFilms");
+    }
+    void Cancel()
+    {
+        NavigationManager.NavigateTo("ListFilms");
+    }
+}

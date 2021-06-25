@@ -1,0 +1,95 @@
+﻿@page "/ListFilms"
+@using blazorServerOnlyVersionv1.Data
+@inject FilmService filmService
+@inject NavigationManager NavigationManager
+
+
+
+    <section class="position-sticky" style="top:56px;background-color:#fff;padding-bottom:40px;">
+        <h1>Film Data</h1>
+
+        <p>This component demonstrates fetching data from the server.</p>
+
+
+
+        @if (IndieFilm != null)
+        {
+    <div class="d-flex flex-row">
+        <div class="p-2">
+            <h3>@IndieFilm.FilmTitle</h3>
+            <p>@IndieFilm.FilmDescription</p>
+        </div>
+        <div class="p-2">    <img src="/images/@IndieFilm.FilmImage" /></div>
+    </div>
+
+
+            
+        }
+
+        <div class="form-group">
+            <a class="btn btn-success" href="/AddFilm"><i class="oi oi-plus"></i> Add Film</a>
+        </div>
+
+    </section>
+
+
+    @if (FilmObj == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Film Name</th>
+                    <th>Certificate</th>
+                    <th>Price</th>
+                    <th>Release Date</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var obj in FilmObj)
+                {
+                    <tr>
+                        <td>@obj.FilmTitle</td>
+                        <td>@obj.FilmCertificate</td>
+                        <td>&pound;@obj.FilmPrice.ToString("0.00")</td>
+                        <td>@obj.FilmReleaseDate.ToShortDateString()</td>
+                        <td><p class="btn btn-primary" @onclick="() => GetIndieFilm(obj.FilmID)">More</p></td>
+                        <td>
+                            <a class="btn btn-success" href="/EditFilm/@obj.FilmID">Edit</a>
+                            <button @onclick="() => DeleteFilm(obj.FilmID)" class="btn btn-danger">Remove</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    @code {
+        List<Film> FilmObj;
+
+        Film IndieFilm { get; set; }
+
+        protected override async Task OnInitializedAsync()
+        {
+            FilmObj = await Task.Run(() => filmService.AllMovies());
+        }
+
+        protected async void DeleteFilm(int FilmID)
+        {
+            FilmObj = await filmService.DeleteFilmAsync(FilmID);
+            StateHasChanged();
+        }
+
+        protected async void GetIndieFilm(int FilmID)
+        {
+            IndieFilm = await Task.Run(() => filmService.GetFilmAsync(Convert.ToInt32(FilmID)));
+            StateHasChanged();
+        }
+
+
+    }

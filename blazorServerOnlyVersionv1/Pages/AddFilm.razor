@@ -1,0 +1,114 @@
+﻿@page "/AddFilm"
+@using System.IO
+@using blazorServerOnlyVersionv1.Data
+@inject FilmService filmService
+@inject NavigationManager NavigationManager
+
+<h3>Add Film</h3>
+
+<EditForm Model=@newFilm OnValidSubmit="@CreateFilm">
+
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label for="FilmTitle">Film Title</label>
+        <InputText @bind-Value=newFilm.FilmTitle class="form-control" id="FilmTitle" />
+        <ValidationMessage For="@(() => newFilm.FilmTitle)" />
+    </div>
+
+    <div>
+        <label for="FilmCertificate">Film Certificate</label>
+        <InputText @bind-Value=newFilm.FilmCertificate class="form-control" id="FilmCertificate" />
+        <ValidationMessage For="@(() => newFilm.FilmCertificate)" />
+    </div>
+
+    <div>
+        <label for="FilmDescription">Film Description</label>
+        <InputTextArea @bind-Value=newFilm.FilmDescription class="form-control" id="FilmDescription" />
+
+    </div>
+
+    @*<div>
+            <label for="FilmImage">Film Image</label>
+            <InputText @bind-Value=newFilm.FilmImage class="form-control" id="FilmImage" />
+        </div>*@
+
+    <div>
+        <label for="FilmImage">Film Image</label>
+        <InputFile OnChange="@OnInputFileChange" id="FileContent" />
+    </div>
+
+    <div>
+        <label for="FilmPrice">Film Price</label>
+        <InputNumber @bind-Value=newFilm.FilmPrice class="form-control" id="FilmPrice" />
+    </div>
+
+    <div>
+        <label for="FilmRating">Film Rating</label>
+        <InputNumber @bind-Value=newFilm.FilmRating class="form-control" id="FilmRating" />
+    </div>
+
+    <div>
+        <label for="FilmReleaseDate">Release Date</label>
+        <InputDate @bind-Value=newFilm.FilmReleaseDate class="form-control" id="FilmReleaseDate" />
+    </div>
+
+    <div>
+        <input type="submit" class="btn btn-primary" value="Save" />
+        <input type="button" class="btn btn-primary" @onclick="@Cancel" value="Cancel" />
+    </div>
+
+</EditForm>
+
+@code {
+    FilmUpdateForm newFilm = new FilmUpdateForm();
+    public IReadOnlyList<IBrowserFile> selectedFiles;
+    public IBrowserFile singleFile;
+    public Boolean ImageUploadRequired = false;
+
+    private void OnInputFileChange
+(InputFileChangeEventArgs ev)
+    {
+        //selectedFiles = ev.GetMultipleFiles();
+        singleFile = ev.File;
+        ImageUploadRequired = true;
+        this.StateHasChanged();
+    }
+    protected async void CreateFilm()
+    {
+        if (ImageUploadRequired)
+        {
+            Stream stream = singleFile.OpenReadStream();
+            MemoryStream ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            stream.Close();
+
+            newFilm.FileName = singleFile.Name;
+            newFilm.FileContent = ms.ToArray();
+            ms.Close();
+
+
+            //  }
+            //response = await Http.PostAsJsonAsync<FilmUpdateForm>
+            //("/Films/ApiAddFilmWithFile", FilmProcess);
+            await filmService.InsertFilmWithFileAsync(newFilm);
+        }
+        else
+        {
+            await filmService.InsertFilmAsync(newFilm);
+        }
+        NavigationManager.NavigateTo("ListFilms");
+    }
+
+    @*protected async void CreateFilm()
+        {
+            await filmService.InsertFilmAsync(newFilm);
+            NavigationManager.NavigateTo("ListFilms");
+        }*@
+    void Cancel()
+    {
+        NavigationManager.NavigateTo("ListFilms");
+    }
+}
+
